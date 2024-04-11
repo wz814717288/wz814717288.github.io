@@ -1,13 +1,13 @@
 # Site settings
-title: 左耳钢琴右耳吉他
-SEOTitle: 左耳钢琴右耳吉他的博客
+title: 左耳钢琴右耳吉他的博客
+SEOTitle: 左耳钢琴右耳吉他 | Blog
 header-img: img/post-bg-desk.jpg
 email: 814717288@qq.com
 description: "醉后不知天在水,满船星梦压星河"
 keyword: "Python, Golang, Docker"
 url: "http://wz814717288.github.io"          # your host, for absolute URL
 baseurl: ""      # for example, '/blog' if your blog hosted on 'host/blog'
-github_repo: "https://github.com/qiubaiying/qiubaiying.github.io.git" # you code repository
+github_repo: "https://github.com/wz814717288/wz814717288.github.io.git" # you code repository
 
 # Sidebar settings
 sidebar: true                           # whether or not using Sidebar.
