@@ -25,11 +25,11 @@ tags:
 `curl -LfO 'https://airflow.apache.org/docs/apache-airflow/2.8.2/docker-compose.yaml'`
 
 3. 修改刚刚拉取的yaml文件  
-- 关闭示例dag
+- 关闭示例dag  
 ```
 AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
 ```
-- 映射本地路径
+- 映射本地路径  
 ```
 volumes:
     - 本地路径/dags:/opt/airflow/dags
