@@ -18,11 +18,13 @@ tags:
 
 
 ## 正文
-1. 拉取镜像
+1. 拉取镜像  
 `docker pull  apache/airflow:2.8.2`
-2. 拉取配置文件
+
+2. 拉取配置文件  
 `curl -LfO 'https://airflow.apache.org/docs/apache-airflow/2.8.2/docker-compose.yaml'`
-3. 修改刚刚拉取的yaml文件
+
+3. 修改刚刚拉取的yaml文件  
 - 关闭示例dag
 ```
 AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
@@ -35,14 +37,16 @@ volumes:
     - 本地路径/config:/opt/airflow/config
     - 本地路径/plugins:/opt/airflow/plugins
 ```
-4. 初始化容器
+
+4. 初始化容器  
 `docker compose up airflow-init`
-5. 启动
+
+5. 启动  
 `docker compose up`
 
-访问 http://localhost:8080
-默认账号: airflow
-默认密码: airflow
+访问 http://localhost:8080  
+默认账号: airflow  
+默认密码: airflow  
 
 
 ### 参考：
