@@ -1,107 +1,50 @@
 ---
 layout:     post
-title:      从一道网易面试题浅谈 Tagged Pointer
-subtitle:   浅谈 Tagged Pointer
-date:       2017-12-26
-author:     BY
+title:      快速搭建 Airflow docker 镜像
+subtitle:   Airflow映射本地路径
+date:       2024-05-09
+author:     Mickey
 header-img: img/post-bg-universe.jpg
 catalog: true
 tags:
-    - iOS
+    - Airflow
+    - Docker
 ---
 
 
 ## 前言
 
-这篇博客九月就想写了，因为赶项目拖了到现在，抓住17年尾巴写吧~
+在本机使用Docker快速搭建Airflow并启动，并映射本地路径至Docker
 
 
 ## 正文
-
-上次看了一篇 [《从一道网易面试题浅谈OC线程安全》](https://www.jianshu.com/p/cec2a41aa0e7) 的博客，主要内容是：
-
-作者去网易面试，面试官出了一道面试题：下面代码会发生什么问题？
-
-```objc
-@property (nonatomic, strong) NSString *target;
-//....
-dispatch_queue_t queue = dispatch_queue_create("parallel", DISPATCH_QUEUE_CONCURRENT);
-for (int i = 0; i < 1000000 ; i++) {
-    dispatch_async(queue, ^{
-        self.target = [NSString stringWithFormat:@"ksddkjalkjd%d",i];
-    });
-}
+1. 拉取镜像
+`docker pull  apache/airflow:2.8.2`
+2. 拉取配置文件
+`curl -LfO 'https://airflow.apache.org/docs/apache-airflow/2.8.2/docker-compose.yaml'`
+3. 修改刚刚拉取的yaml文件
+- 关闭示例dag
 ```
-
-答案是：会 crash。
-
-我们来看看对`target`属性（`strong`修饰）进行赋值，相当与 MRC 中的
-
+AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
 ```
-- (void)setTarget:(NSString *)target {
-    if (target == _target) return;
-    id pre = _target;
-    [target retain];//1.先保留新值
-    _target = target;//2.再进行赋值
-    [pre release];//3.释放旧值
-}
+- 映射本地路径
 ```
-
-因为在 *并行队列* `DISPATCH_QUEUE_CONCURRENT` 中*异步* `dispatch_async` 对 `target`属性进行赋值，就会导致 target 已经被 `release`了，还会执行 `release`。这就是向已释放内存对象发送消息而发生 crash 。
-
-
-### 但是
-
-我敲了这段代码，执行的时候发现并不会 crash~
-
-```objc
-@property (nonatomic, strong) NSString *target;
-dispatch_queue_t queue = dispatch_queue_create("parallel", DISPATCH_QUEUE_CONCURRENT);
-for (int i = 0; i < 1000000 ; i++) {
-    dispatch_async(queue, ^{
-    	// ‘ksddkjalkjd’删除了
-        self.target = [NSString stringWithFormat:@"%d",i];
-    });
-}
+volumes:
+    - 本地路径/dags:/opt/airflow/dags
+    - 本地路径/logs:/opt/airflow/logs
+    - 本地路径/config:/opt/airflow/config
+    - 本地路径/plugins:/opt/airflow/plugins
 ```
+4. 初始化容器
+`docker compose up airflow-init`
+5. 启动
+`docker compose up`
 
-原因就出在对 `self.target` 赋值的字符串上。博客的最后也提到了 - *‘上述代码的字符串改短一些，就不会崩溃’*，还有 `Tagged Pointer` 这个东西。
-
-我们将上面的代码修改下：
-
-
-```objc
-NSString *str = [NSString stringWithFormat:@"%d", i];
-NSLog(@"%d, %s, %p", i, object_getClassName(str), str);
-self.target = str;
-```
-
-输出：
-
-```
-0, NSTaggedPointerString, 0x3015
-```
-
-发现这个字符串类型是 `NSTaggedPointerString`，那我们来看看 Tagged Pointer 是什么？
-
-### Tagged Pointer
-
-Tagged Pointer 详细的内容可以看这里 [深入理解Tagged Pointer](http://www.infoq.com/cn/articles/deep-understanding-of-tagged-pointer)。
-
-Tagged Pointer 是一个能够提升性能、节省内存的有趣的技术。
-
-- Tagged Pointer 专门用来存储小的对象，例如 **NSNumber** 和 **NSDate**（后来可以存储小字符串）
-- Tagged Pointer 指针的值不再是地址了，而是真正的值。所以，实际上它不再是一个对象了，它只是一个披着对象皮的普通变量而已。
-- 它的内存并不存储在堆中，也不需要 malloc 和 free，所以拥有极快的读取和创建速度。
-
-
+访问 http://localhost:8080
+默认账号: airflow
+默认密码: airflow
 
 
 ### 参考：
 
-- [从一道网易面试题浅谈OC线程安全](https://www.jianshu.com/p/cec2a41aa0e7)
-
-- [深入理解Tagged Pointer](http://www.infoq.com/cn/articles/deep-understanding-of-tagged-pointer)
-
-- [【译】采用Tagged Pointer的字符串](http://www.cocoachina.com/ios/20150918/13449.html)
-
+- [airflow官方文档](https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html "官方文档")
